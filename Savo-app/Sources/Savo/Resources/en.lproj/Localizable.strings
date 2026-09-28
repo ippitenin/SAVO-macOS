@@ -1,0 +1,124 @@
+/* General */
+"app.name" = "Savo";
+"main.tagline" = "Save your YouTube videos";
+
+/* URL field */
+"input.placeholder" = "Paste a YouTube video link";
+"input.paste" = "Paste";
+"main.hint" = "Copy a link to your video —\nSavo will pick it up automatically.";
+
+/* States */
+"state.fetching" = "Fetching video info…";
+"action.cancel" = "Cancel";
+"action.download" = "Download";
+"error.retry" = "Try again";
+"error.detailsTitle" = "Details";
+
+/* Categories and presets */
+"category.video" = "Video";
+"category.audio" = "Audio";
+"category.muted" = "No sound";
+"preset.m4a" = "M4A · original";
+"preset.mp3" = "MP3 · %d kbps";
+"preset.sizeUnknown" = "size unknown";
+"preset.sizeApprox" = "≈ %@";
+"preset.compatWarning" = "This variant isn’t H.264 — QuickTime won’t open it, use VLC or IINA.";
+"preset.loweredForCompat" = "%dp chosen for compatibility: %dp is available but won’t open in QuickTime.";
+"preset.maxAvailable" = "Right now YouTube serves this video at up to %dp.";
+"preset.noVariants" = "No suitable variants for this video.";
+
+/* File name tags */
+"preset.tag.video" = "%dp";
+"preset.tag.muted" = "%dp, no audio";
+"preset.tag.mp3" = "MP3 %dk";
+"preset.tag.m4a" = "M4A";
+
+/* Progress */
+"progress.phase" = "Step %d of %d";
+"progress.speed" = "%@/s";
+"progress.eta" = "%@ left";
+"progress.merging" = "Merging tracks…";
+
+/* Done */
+"done.title" = "Done!";
+"done.showInFinder" = "Show in Finder";
+"done.downloadMore" = "Download more";
+
+/* App menu */
+"menu.about" = "About Savo";
+"menu.settings" = "Settings…";
+"menu.hideApp" = "Hide Savo";
+"menu.hideOthers" = "Hide Others";
+"menu.showAll" = "Show All";
+"menu.quit" = "Quit Savo";
+
+/* Edit menu */
+"edit.menu" = "Edit";
+"edit.undo" = "Undo";
+"edit.redo" = "Redo";
+"edit.cut" = "Cut";
+"edit.copy" = "Copy";
+"edit.paste" = "Paste";
+"edit.selectAll" = "Select All";
+
+/* Window menu */
+"window.menu" = "Window";
+"window.close" = "Close";
+"window.minimize" = "Minimize";
+
+/* Errors */
+"error.invalidURL" = "This doesn’t look like a YouTube link. Check the address and try again.";
+"error.engineMissing" = "Download engine not found. Please reinstall the app.";
+"error.videoUnavailable" = "Video is unavailable or has been removed.";
+"error.privateVideo" = "This video is private — Savo can’t access it. Switch it to “unlisted” and try again.";
+"error.forbidden" = "YouTube rejected the download request. Savo already tried a fallback — wait a few minutes and try again.";
+"error.botCheck" = "YouTube mistook the request for a bot. Savo already tried a fallback — wait 10–15 minutes and try again.";
+"error.tooManyRequests" = "YouTube temporarily rate-limited this address. Wait a bit and try again.";
+"error.network" = "No internet connection. Check your network and try again.";
+"error.unsupportedURL" = "This link isn’t supported. Paste a YouTube video link.";
+"error.liveNotFinished" = "The live stream hasn’t finished yet. Wait for it to end and try again.";
+"error.badMetadata" = "Couldn’t parse the YouTube response. Try again or update the engine in Settings.";
+"error.formatUnavailable" = "YouTube isn’t serving the selected quality for this video right now. Wait a couple of minutes and try again — or pick a lower quality.";
+"error.engineFailed" = "Download failed. Details below.";
+"error.noFileProduced" = "The engine finished successfully but no file was found.";
+
+/* Settings */
+"settings.title" = "Settings";
+"settings.folder" = "Downloads folder";
+"settings.folder.help" = "Downloaded videos and audio are saved here. Defaults to your Downloads folder.";
+"settings.folder.choose" = "Choose…";
+"settings.folder.current" = "Current folder";
+"settings.clipboard" = "Clipboard";
+"settings.autopaste" = "Pick up link from clipboard";
+"settings.autopaste.help" = "If a YouTube link is in the clipboard when you switch to Savo, it is filled in automatically.";
+"settings.engine" = "Engine";
+"settings.engine.version" = "yt-dlp";
+"settings.engine.help" = "yt-dlp is the downloader inside Savo. YouTube changes its protection from time to time; if downloads stop working — update the engine.";
+"settings.engine.update" = "Engine update";
+"settings.engine.updateButton" = "Update engine";
+"settings.engine.upToDate" = "Already up to date";
+"settings.engine.autoUpdate" = "Check for updates automatically";
+"settings.engine.autoUpdate.help" = "Once a day Savo checks GitHub for a new yt-dlp version, verifies its checksum and installs it. YouTube often changes its protection — a fresh engine fails less.";
+"settings.engine.checking" = "Checking…";
+"settings.engine.downloading" = "Downloading %@…";
+"settings.engine.installing" = "Installing…";
+"settings.engine.updatedTo" = "Updated to %@";
+"settings.engine.pending" = "Version %@ will apply after the current download";
+"settings.engine.lastCheck" = "Last checked: %@";
+"settings.engine.updateFailed.network" = "Can’t reach GitHub";
+"settings.engine.updateFailed.checksum" = "Downloaded file is corrupted";
+"settings.engine.updateFailed" = "Update failed";
+
+/* Settings: diagnostics */
+"settings.diagnostics" = "Diagnostics";
+"settings.diagnostics.report" = "Debug report";
+"settings.diagnostics.report.help" = "Collects versions, Mac model, engine startup speed, recent downloads and the log tail — and puts it on the clipboard. Paste it into a message if something went wrong.";
+"settings.diagnostics.copy" = "Copy report";
+"settings.diagnostics.copied" = "Copied";
+"settings.diagnostics.log" = "Engine log";
+"settings.diagnostics.showLog" = "Show log";
+
+/* History */
+"history.title" = "History";
+"history.clear" = "Clear";
+"history.delete" = "Remove from history";

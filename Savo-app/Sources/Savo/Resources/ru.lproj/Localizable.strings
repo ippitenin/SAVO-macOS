@@ -1,0 +1,124 @@
+/* Общее */
+"app.name" = "Savo";
+"main.tagline" = "Скачивайте свои видео с YouTube";
+
+/* Поле ссылки */
+"input.placeholder" = "Вставьте ссылку на видео YouTube";
+"input.paste" = "Вставить";
+"main.hint" = "Скопируйте ссылку на своё видео —\nи Savo подхватит её сама.";
+
+/* Состояния */
+"state.fetching" = "Получаю информацию о видео…";
+"action.cancel" = "Отменить";
+"action.download" = "Скачать";
+"error.retry" = "Попробовать снова";
+"error.detailsTitle" = "Подробности";
+
+/* Категории и пресеты */
+"category.video" = "Видео";
+"category.audio" = "Аудио";
+"category.muted" = "Без звука";
+"preset.m4a" = "M4A · оригинал";
+"preset.mp3" = "MP3 · %d кбит/с";
+"preset.sizeUnknown" = "размер неизвестен";
+"preset.sizeApprox" = "≈ %@";
+"preset.compatWarning" = "Этот вариант не в H.264 — QuickTime его не откроет, нужен VLC или IINA.";
+"preset.loweredForCompat" = "Выбрано %dp ради совместимости: %dp есть, но не откроется в QuickTime.";
+"preset.maxAvailable" = "Сейчас YouTube отдаёт этот ролик максимум в %dp.";
+"preset.noVariants" = "Для этого ролика подходящих вариантов нет.";
+
+/* Метки в имени файла */
+"preset.tag.video" = "%dp";
+"preset.tag.muted" = "%dp, без звука";
+"preset.tag.mp3" = "MP3 %dk";
+"preset.tag.m4a" = "M4A";
+
+/* Прогресс */
+"progress.phase" = "Этап %d из %d";
+"progress.speed" = "%@/с";
+"progress.eta" = "осталось %@";
+"progress.merging" = "Объединяю дорожки…";
+
+/* Готово */
+"done.title" = "Готово!";
+"done.showInFinder" = "Показать в Finder";
+"done.downloadMore" = "Скачать ещё";
+
+/* Меню приложения */
+"menu.about" = "О программе Savo";
+"menu.settings" = "Настройки…";
+"menu.hideApp" = "Скрыть Savo";
+"menu.hideOthers" = "Скрыть остальные";
+"menu.showAll" = "Показать все";
+"menu.quit" = "Завершить Savo";
+
+/* Меню «Правка» */
+"edit.menu" = "Правка";
+"edit.undo" = "Отменить";
+"edit.redo" = "Повторить";
+"edit.cut" = "Вырезать";
+"edit.copy" = "Скопировать";
+"edit.paste" = "Вставить";
+"edit.selectAll" = "Выбрать всё";
+
+/* Меню «Окно» */
+"window.menu" = "Окно";
+"window.close" = "Закрыть";
+"window.minimize" = "Свернуть";
+
+/* Ошибки */
+"error.invalidURL" = "Это не похоже на ссылку YouTube. Проверьте адрес и попробуйте ещё раз.";
+"error.engineMissing" = "Движок загрузки не найден. Переустановите приложение.";
+"error.videoUnavailable" = "Видео недоступно или удалено.";
+"error.privateVideo" = "Видео приватное — у Savo нет к нему доступа. Откройте доступ «по ссылке» и попробуйте снова.";
+"error.forbidden" = "YouTube отклонил запрос на скачивание. Savo уже пробовал запасной способ — подождите несколько минут и попробуйте снова.";
+"error.botCheck" = "YouTube принял запрос за робота. Savo уже пробовал запасной способ — подождите 10–15 минут и попробуйте снова.";
+"error.tooManyRequests" = "YouTube временно ограничил запросы с этого адреса. Подождите немного и попробуйте снова.";
+"error.network" = "Нет соединения с интернетом. Проверьте сеть и попробуйте снова.";
+"error.unsupportedURL" = "Эта ссылка не поддерживается. Вставьте ссылку на видео YouTube.";
+"error.liveNotFinished" = "Эфир ещё не завершился. Дождитесь окончания трансляции и попробуйте снова.";
+"error.badMetadata" = "Не удалось разобрать ответ YouTube. Попробуйте ещё раз или обновите движок в настройках.";
+"error.formatUnavailable" = "YouTube сейчас не отдаёт выбранное качество для этого ролика. Подождите пару минут и попробуйте снова — или выберите качество ниже.";
+"error.engineFailed" = "Не получилось скачать. Подробности — ниже.";
+"error.noFileProduced" = "Движок завершился успешно, но файл не найден.";
+
+/* Настройки */
+"settings.title" = "Настройки";
+"settings.folder" = "Папка загрузок";
+"settings.folder.help" = "Сюда сохраняются скачанные видео и аудио. По умолчанию — папка «Загрузки».";
+"settings.folder.choose" = "Выбрать…";
+"settings.folder.current" = "Текущая папка";
+"settings.clipboard" = "Буфер обмена";
+"settings.autopaste" = "Подхватывать ссылку из буфера";
+"settings.autopaste.help" = "Если при переключении на Savo в буфере обмена лежит ссылка на YouTube, она подставится в поле автоматически.";
+"settings.engine" = "Движок";
+"settings.engine.version" = "yt-dlp";
+"settings.engine.help" = "yt-dlp — загрузчик внутри Savo. YouTube время от времени меняет защиту; если видео перестали скачиваться — обновите движок.";
+"settings.engine.update" = "Обновление движка";
+"settings.engine.updateButton" = "Обновить движок";
+"settings.engine.upToDate" = "Уже последняя версия";
+"settings.engine.autoUpdate" = "Проверять обновления автоматически";
+"settings.engine.autoUpdate.help" = "Раз в сутки Savo проверяет новую версию yt-dlp на GitHub, сверяет контрольную сумму и ставит её сама. YouTube часто меняет защиту — со свежим движком отказов меньше.";
+"settings.engine.checking" = "Проверяю…";
+"settings.engine.downloading" = "Скачиваю %@…";
+"settings.engine.installing" = "Устанавливаю…";
+"settings.engine.updatedTo" = "Обновлён до %@";
+"settings.engine.pending" = "Версия %@ применится после текущей загрузки";
+"settings.engine.lastCheck" = "Последняя проверка: %@";
+"settings.engine.updateFailed.network" = "Нет связи с GitHub";
+"settings.engine.updateFailed.checksum" = "Файл повреждён при загрузке";
+"settings.engine.updateFailed" = "Не удалось обновить";
+
+/* Настройки: диагностика */
+"settings.diagnostics" = "Диагностика";
+"settings.diagnostics.report" = "Отчёт для отладки";
+"settings.diagnostics.report.help" = "Собирает версии, модель Mac, скорость запуска движка, последние загрузки и хвост журнала — и кладёт в буфер обмена. Вставьте его в сообщение, если что-то пошло не так.";
+"settings.diagnostics.copy" = "Скопировать отчёт";
+"settings.diagnostics.copied" = "Скопировано";
+"settings.diagnostics.log" = "Журнал движка";
+"settings.diagnostics.showLog" = "Показать журнал";
+
+/* История */
+"history.title" = "История";
+"history.clear" = "Очистить";
+"history.delete" = "Удалить из истории";
