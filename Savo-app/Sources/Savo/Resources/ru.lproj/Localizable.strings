@@ -34,7 +34,6 @@
 "preset.tag.m4a" = "M4A";
 
 /* Прогресс */
-"progress.phase" = "Этап %d из %d";
 "progress.speed" = "%@/с";
 "progress.eta" = "осталось %@";
 "progress.merging" = "Объединяю дорожки…";

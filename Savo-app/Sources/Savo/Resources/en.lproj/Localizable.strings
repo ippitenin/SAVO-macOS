@@ -34,7 +34,6 @@
 "preset.tag.m4a" = "M4A";
 
 /* Progress */
-"progress.phase" = "Step %d of %d";
 "progress.speed" = "%@/s";
 "progress.eta" = "%@ left";
 "progress.merging" = "Merging tracks…";

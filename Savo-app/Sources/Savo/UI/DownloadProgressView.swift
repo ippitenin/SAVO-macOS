@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Прогресс загрузки: полоса с фирменной жёлтой риской, проценты,
-/// скорость, оставшееся время, этап и кнопка отмены.
+/// скорость, оставшееся время и кнопка отмены.
 struct DownloadProgressView: View {
     let progress: DownloadProgress
     let onCancel: () -> Void
@@ -25,43 +25,37 @@ struct DownloadProgressView: View {
         .glassSurface()
     }
 
+    /// Одна полоса на всё скачивание: видео и звук идут подряд, без сброса
+    /// между дорожками (доли считает DownloadProgressAggregator).
     private var progressBar: some View {
-        VStack(spacing: 8) {
-            if progress.phaseCount > 1 {
-                Text(L("progress.phase", progress.phase, progress.phaseCount))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            GeometryReader { geo in
-                let fraction = progress.fraction
-                ZStack(alignment: .leading) {
+        GeometryReader { geo in
+            let fraction = progress.fraction
+            ZStack(alignment: .leading) {
+                Capsule(style: .continuous)
+                    .fill(DS.plum.opacity(0.25))
+                if let fraction {
                     Capsule(style: .continuous)
-                        .fill(DS.plum.opacity(0.25))
-                    if let fraction {
-                        Capsule(style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [DS.rose, DS.accent],
-                                    startPoint: .leading, endPoint: .trailing
-                                )
+                        .fill(
+                            LinearGradient(
+                                colors: [DS.rose, DS.accent],
+                                startPoint: .leading, endPoint: .trailing
                             )
-                            .frame(width: max(10, geo.size.width * fraction))
-                        // Фирменная жёлтая риска на фронте прогресса,
-                        // как индикатор слайдера в референсе.
-                        RoundedRectangle(cornerRadius: 1.5, style: .continuous)
-                            .fill(DS.marker)
-                            .frame(width: 3, height: 18)
-                            .offset(x: max(10, geo.size.width * fraction) - 1.5)
-                    } else {
-                        // Неопределённый прогресс: мягкая пульсация полосы.
-                        IndeterminateBar()
-                    }
+                        )
+                        .frame(width: max(10, geo.size.width * fraction))
+                    // Фирменная жёлтая риска на фронте прогресса,
+                    // как индикатор слайдера в референсе.
+                    RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                        .fill(DS.marker)
+                        .frame(width: 3, height: 18)
+                        .offset(x: max(10, geo.size.width * fraction) - 1.5)
+                } else {
+                    // Неопределённый прогресс: мягкая пульсация полосы.
+                    IndeterminateBar()
                 }
             }
-            .frame(height: 12)
-            .animation(DS.Anim.control, value: progress.fraction)
         }
+        .frame(height: 12)
+        .animation(DS.Anim.control, value: progress.fraction)
     }
 
     private var statsRow: some View {

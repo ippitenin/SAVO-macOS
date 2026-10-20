@@ -2,15 +2,13 @@ import Foundation
 
 /// Снимок прогресса загрузки для UI.
 struct DownloadProgress: Equatable {
-    /// Доля 0…1; nil — прогресс неопределён.
+    /// Доля всего скачивания 0…1 (видео и звук — одна полоса);
+    /// nil — прогресс неопределён.
     var fraction: Double?
     /// Скорость, байт/с.
     var speed: Double?
-    /// Осталось секунд.
+    /// Осталось секунд (по текущей дорожке).
     var eta: Double?
-    /// Номер текущего этапа (видео/аудио) и их число.
-    var phase: Int = 1
-    var phaseCount: Int = 1
     /// Идёт объединение дорожек (ffmpeg) после скачивания.
     var merging: Bool = false
 }
@@ -75,21 +73,43 @@ enum ProgressParser {
     }
 }
 
-/// Агрегатор строк вывода yt-dlp в снимки DownloadProgress:
-/// следит за фазами (видео → аудио), объединением и финальным путём файла.
+/// Агрегатор строк вывода yt-dlp в снимки DownloadProgress: сводит фазы
+/// (видео → звук) в одну полосу, следит за объединением и финальным путём.
+///
+/// Каждая фаза занимает в полосе долю по своему весу (размер дорожки):
+/// видео идёт почти до конца, звук досыпает остаток. Раньше полоса
+/// доходила до 100% на видео и сбрасывалась на звуке («Этап 1 из 2»).
 struct DownloadProgressAggregator {
-    /// Ожидаемое число фаз скачивания (видео+звук = 2).
-    let phaseCount: Int
-    private(set) var progress: DownloadProgress
+    /// Доли фаз в полосе, в порядке загрузки (см. DownloadPreset.phaseWeights).
+    let weights: [Double]
+    private(set) var progress = DownloadProgress()
     /// Финальный путь файла из `--print after_move:filepath`.
     private(set) var filePath: String?
 
     private var finishedPhases = 0
 
-    init(phaseCount: Int) {
-        self.phaseCount = phaseCount
-        progress = DownloadProgress(fraction: nil, speed: nil, eta: nil,
-                                    phase: 1, phaseCount: phaseCount, merging: false)
+    init(weights: [Double]) {
+        self.weights = weights.isEmpty ? [1] : weights
+    }
+
+    /// Доля уже скачанных фаз.
+    private var completedShare: Double {
+        min(1, weights.prefix(finishedPhases).reduce(0, +))
+    }
+
+    /// Вес текущей фазы. Фаз бывает меньше ожидаемого (у пресета видео
+    /// селектор может взять один общий файл), лишняя фаза веса не имеет.
+    private var currentWeight: Double {
+        finishedPhases < weights.count ? weights[finishedPhases] : 0
+    }
+
+    /// Новая доля полосы. Внутри попытки полоса не откатывается:
+    /// `total_bytes_estimate` у фрагментных загрузок скачет. Неизвестная
+    /// доля текущей фазы — остаётся то, что уже набрано (или nil).
+    private mutating func advance(to share: Double?) {
+        progress.fraction = [progress.fraction, share.map { min(1, $0) }]
+            .compactMap { $0 }
+            .max()
     }
 
     /// Обрабатывает строку stdout; true — если прогресс изменился.
@@ -97,21 +117,24 @@ struct DownloadProgressAggregator {
         if let snapshot = ProgressParser.parse(line: line) {
             switch snapshot.status {
             case "downloading":
-                progress.fraction = ProgressParser.fraction(of: snapshot)
+                let done = completedShare
+                if let part = ProgressParser.fraction(of: snapshot) {
+                    advance(to: done + currentWeight * part)
+                } else {
+                    advance(to: done > 0 ? done : nil)
+                }
                 progress.speed = snapshot.speed
                 progress.eta = snapshot.eta
                 progress.merging = false
                 return true
             case "finished":
                 finishedPhases += 1
-                if finishedPhases >= phaseCount {
-                    // Все дорожки скачаны — дальше работает ffmpeg.
+                advance(to: completedShare)
+                progress.speed = nil
+                progress.eta = nil
+                // Все дорожки скачаны — дальше работает ffmpeg.
+                if finishedPhases >= weights.count {
                     progress.merging = true
-                } else {
-                    progress.phase = finishedPhases + 1
-                    progress.fraction = nil
-                    progress.speed = nil
-                    progress.eta = nil
                 }
                 return true
             default:

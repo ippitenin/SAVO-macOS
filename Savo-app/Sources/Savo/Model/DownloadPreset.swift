@@ -25,6 +25,9 @@ struct DownloadPreset: Equatable, Identifiable, Hashable {
     /// фактическая высота кадра для селектора yt-dlp: у кадра 2:1 ступени
     /// 1080p соответствует высота 960. nil — ступень равна высоте.
     var tier: Int? = nil
+    /// Доля видеодорожки в общем объёме (только `.video`: видео и звук
+    /// качаются отдельными файлами). nil — оценок размера нет.
+    var videoShare: Double? = nil
 
     /// Ступень качества видео-варианта (nil — аудио).
     var qualityTier: Int? {
@@ -32,6 +35,16 @@ struct DownloadPreset: Equatable, Identifiable, Hashable {
         case .video(let h), .videoOnly(let h): return tier ?? h
         case .audioM4A, .audioMP3: return nil
         }
+    }
+
+    /// Доли фаз скачивания в общей полосе прогресса, в порядке загрузки
+    /// (yt-dlp качает сначала видео, потом звук). Без оценок размера
+    /// видео отдаётся 0,95 — грубая оценка: звук m4a ~128 кбит/с против
+    /// единиц Мбит/с у видео 720p–1080p.
+    var phaseWeights: [Double] {
+        guard case .video = kind else { return [1] }
+        let share = min(max(videoShare ?? 0.95, 0), 1)
+        return [share, 1 - share]
     }
 
     var id: String {
@@ -226,12 +239,22 @@ enum PresetBuilder {
 
     /// Пресеты вкладки «Видео».
     static func videoPresets(for info: VideoInfo) -> [DownloadPreset] {
-        videoQualities(for: info).map {
-            DownloadPreset(kind: .video(height: $0.height),
-                           estimatedBytes: estimateVideo(height: $0.height, info: info, withAudio: true),
-                           quickTimeReady: hasAVC(height: $0.height, info: info),
-                           tier: $0.tier)
+        let audio = estimateBestAudio(info: info)
+        return videoQualities(for: info).map {
+            let video = estimateVideo(height: $0.height, info: info, withAudio: false)
+            return DownloadPreset(kind: .video(height: $0.height),
+                                  estimatedBytes: estimateVideo(height: $0.height, info: info, withAudio: true),
+                                  quickTimeReady: hasAVC(height: $0.height, info: info),
+                                  tier: $0.tier,
+                                  videoShare: videoShare(video: video, audio: audio))
         }
+    }
+
+    /// Доля видео в общем объёме для полосы прогресса; nil — если
+    /// какой-то из оценок нет.
+    static func videoShare(video: Double?, audio: Double?) -> Double? {
+        guard let video, let audio, video > 0, audio >= 0 else { return nil }
+        return video / (video + audio)
     }
 
     /// Пресеты вкладки «Аудио».

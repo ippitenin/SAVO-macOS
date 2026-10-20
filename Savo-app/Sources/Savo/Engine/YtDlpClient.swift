@@ -167,7 +167,7 @@ enum YtDlpClient {
                         preset: preset, destination: destination,
                         attempt: attempt, url: url
                     )
-                    var aggregator = DownloadProgressAggregator(phaseCount: preset.expectedPhases)
+                    var aggregator = DownloadProgressAggregator(weights: preset.phaseWeights)
                     var stderrTail: [String] = []
                     var stderrAll: [String] = []
                     let started = ContinuousClock.now
@@ -232,12 +232,4 @@ enum YtDlpClient {
         }
     }
 
-}
-
-extension DownloadPreset {
-    /// Число фаз скачивания для прогресса «Этап N из M».
-    var expectedPhases: Int {
-        if case .video = kind { return 2 }
-        return 1
-    }
 }
