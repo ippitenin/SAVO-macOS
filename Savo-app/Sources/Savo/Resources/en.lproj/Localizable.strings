@@ -73,7 +73,7 @@
 "error.forbidden" = "YouTube rejected the download request. Savo already tried a fallback — wait a few minutes and try again.";
 "error.botCheck" = "YouTube mistook the request for a bot. Savo already tried a fallback — wait 10–15 minutes and try again.";
 "error.tooManyRequests" = "YouTube temporarily rate-limited this address. Wait a bit and try again.";
-"error.network" = "No internet connection. Check your network and try again.";
+"error.network" = "Can’t reach YouTube. Check your connection and try again. If YouTube only works for you through a VPN, turn it on for the whole Mac — a browser extension won’t help Savo.";
 "error.unsupportedURL" = "This link isn’t supported. Paste a YouTube video link.";
 "error.liveNotFinished" = "The live stream hasn’t finished yet. Wait for it to end and try again.";
 "error.badMetadata" = "Couldn’t parse the YouTube response. Try again or update the engine in Settings.";
