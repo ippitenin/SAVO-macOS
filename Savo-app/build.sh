@@ -1,13 +1,14 @@
 #!/bin/bash
 # Сборка Savo.app из SPM-пакета, подпись и установка в ~/Applications.
-# Использование: ./build.sh [--zip]
-#   --zip — дополнительно упаковать бандл в Savo.zip в корне репозитория
-#           (ditto, для передачи на другой Mac).
+# Использование: ./build.sh [--dmg]
+#   --dmg — дополнительно собрать Savo.dmg в корне репозитория: образ с
+#           приложением и симлинком на /Applications — привычная установка
+#           перетаскиванием, как у приложений из интернета.
 #
 # Подпись выбирается сама (как у DOKA): сертификат «Developer ID Application»
 # из связки ключей, если он есть, иначе самоподписанный «Savo Dev», иначе
-# ad-hoc. Только с Developer ID архив из --zip уходит на нотаризацию Apple и
-# открывается на втором Mac без «Открыть всё равно» (профиль notarytool —
+# ad-hoc. Только с Developer ID образ из --dmg уходит на нотаризацию Apple и
+# открывается на чужом Mac без «Открыть всё равно» (профиль notarytool —
 # SAVO_NOTARY_PROFILE).
 #
 # Бинарник собирается только под arm64: все Mac пользователя — Apple
@@ -30,11 +31,11 @@ NOTARY_PROFILE="${SAVO_NOTARY_PROFILE:-apps-notary}"
 INSTALL_DIR="${SAVO_INSTALL_DIR:-$HOME/Applications}"
 APP="$INSTALL_DIR/${APP_NAME}.app"
 
-MAKE_ZIP=0
+MAKE_DMG=0
 for arg in "$@"; do
     case "$arg" in
-        --zip) MAKE_ZIP=1 ;;
-        *) echo "Неизвестный аргумент: $arg (поддерживается только --zip)"; exit 1 ;;
+        --dmg) MAKE_DMG=1 ;;
+        *) echo "Неизвестный аргумент: $arg (поддерживается только --dmg)"; exit 1 ;;
     esac
 done
 
@@ -179,7 +180,7 @@ codesign_timestamped() {
 
 # Архив yt-dlp под нотаризацию. Apple распаковывает вложенные архивы и
 # проверяет каждый Mach-O: у onedir-сборки релиза все ~100 файлов подписаны
-# ad-hoc, и весь Savo.zip отклоняется. Поэтому с Developer ID архив
+# ad-hoc, и весь образ отклоняется. Поэтому с Developer ID архив
 # пересобирается: каждый Mach-O — наша подпись с hardened runtime и меткой
 # времени. Прав (entitlements) yt-dlp не нужно: под hardened runtime он,
 # curl_cffi и экстракторы работают, если все библиотеки подписаны одной
@@ -312,22 +313,33 @@ rm -rf "$APP"
 mv "$STAGE_APP" "$APP"
 echo "==> Готово: $APP"
 
-if [ "$MAKE_ZIP" = 1 ]; then
-    ZIP_PATH="$(cd .. && pwd)/${APP_NAME}.zip"
-    echo "==> Упаковка в ${ZIP_PATH}…"
-    rm -f "$ZIP_PATH"
-    # Именно ditto: zip/Finder-архивация не сохраняют подпись и структуру бандла.
-    ditto -c -k --keepParent "$APP" "$ZIP_PATH"
+if [ "$MAKE_DMG" = 1 ]; then
+    DMG_PATH="$(cd .. && pwd)/${APP_NAME}.dmg"
+    echo "==> Сборка образа ${DMG_PATH}…"
+    # Содержимое образа: приложение + симлинк на /Applications для установки
+    # перетаскиванием. Папка-источник — внутри $STAGE (вне iCloud), её
+    # подчистит общий trap. Именно ditto: сохраняет подпись и структуру бандла.
+    DMG_SRC="$STAGE/dmg"
+    mkdir -p "$DMG_SRC"
+    ditto "$APP" "$DMG_SRC/${APP_NAME}.app"
+    ln -s /Applications "$DMG_SRC/Applications"
+    rm -f "$DMG_PATH"
+    # UDZO — сжатый read-only образ, стандарт раздачи приложений.
+    hdiutil create -volname "$APP_NAME" -srcfolder "$DMG_SRC" \
+        -format UDZO -ov -quiet "$DMG_PATH"
+    echo "    Готово: $(du -h "$DMG_PATH" | cut -f1 | tr -d ' ')."
 
     if [ "$IS_DEVELOPER_ID" = 1 ]; then
         echo "==> Нотаризация (обычно несколько минут)…"
+        # Подписанный образ Gatekeeper проверяет целиком, ещё до монтирования.
+        codesign_timestamped --force --sign "$RESOLVED_SIGN" "$DMG_PATH"
         # Решаем по статусу из JSON, а не по коду возврата: так различаются
         # «до Apple не дошло» (статуса нет) и «Apple отклонила» (статус есть).
-        NOTARY_JSON="$(xcrun notarytool submit "$ZIP_PATH" \
+        NOTARY_JSON="$(xcrun notarytool submit "$DMG_PATH" \
             --keychain-profile "$NOTARY_PROFILE" --wait --output-format json)" || true
         NOTARY_STATUS="$(plutil -extract status raw - <<< "$NOTARY_JSON" 2>/dev/null)" || true
         if [ -z "$NOTARY_STATUS" ]; then
-            rm -f "$ZIP_PATH"
+            rm -f "$DMG_PATH"
             echo "    Не удалось отправить на нотаризацию: нет сети или профиля «${NOTARY_PROFILE}»."
             if [ -n "$NOTARY_JSON" ]; then
                 echo "    Ответ notarytool: $NOTARY_JSON"
@@ -337,21 +349,20 @@ if [ "$MAKE_ZIP" = 1 ]; then
             exit 1
         fi
         if [ "$NOTARY_STATUS" != "Accepted" ]; then
-            rm -f "$ZIP_PATH"
+            rm -f "$DMG_PATH"
             echo "    Apple отклонила сборку (статус ${NOTARY_STATUS}). Подробности:"
             xcrun notarytool log "$(plutil -extract id raw - <<< "$NOTARY_JSON")" \
                 --keychain-profile "$NOTARY_PROFILE"
             exit 1
         fi
-        # К zip квитанцию не прикрепить (stapler берёт бандл, образ или pkg):
-        # прикрепляем к приложению и упаковываем заново — тогда второй Mac
-        # проверит её и без интернета. Проверяем именно квитанцию, а не
-        # `spctl --assess`: при выключенном Gatekeeper spctl примет что угодно.
+        # Квитанция внутри образа: Gatekeeper проверит его и без интернета.
+        # Проверяем именно квитанцию, а не `spctl --assess`: при выключенном
+        # Gatekeeper spctl примет и ненотаризованный образ. Установленной
+        # копии квитанция тоже достаётся: Apple выдала её и приложению.
+        xcrun stapler staple -q "$DMG_PATH"
+        xcrun stapler validate -q "$DMG_PATH"
         xcrun stapler staple -q "$APP"
-        xcrun stapler validate -q "$APP"
-        rm -f "$ZIP_PATH"
-        ditto -c -k --keepParent "$APP" "$ZIP_PATH"
-        echo "    Нотаризован: на втором Mac откроется без предупреждений Gatekeeper."
+        echo "    Нотаризован: на любом Mac откроется без предупреждений Gatekeeper."
     else
         echo "    На чужом Mac сертификат «${SIGN_ID}» неизвестен — Gatekeeper заблокирует"
         echo "    первый запуск: правый клик → «Открыть» или Системные настройки →"
