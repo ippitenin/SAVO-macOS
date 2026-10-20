@@ -79,8 +79,18 @@ BIN="$BIN_DIR/${APP_NAME}"
 # получил бы SIGPIPE, и под pipefail сборка молча упала бы.
 STALE="$(find Sources Package.swift -type f -newer "$BIN" -print -quit)"
 if [ -n "$STALE" ]; then
-    echo "ОШИБКА: $BIN старее исходников ($STALE) — сборка его не обновила."
-    exit 1
+    # Ложная тревога бывает штатно: git checkout/pull обновляет время файлов,
+    # а содержимое прежнее — SwiftPM сверяет содержимое и не пересобирает.
+    # Так случалось перед каждым релизом сразу после `git pull`. Поэтому
+    # один раз собираем начисто; осталось старым — это уже настоящая беда.
+    echo "    ${STALE} новее бинарника — сборка release начисто…"
+    swift package clean
+    swift build -c release --arch arm64
+    STALE="$(find Sources Package.swift -type f -newer "$BIN" -print -quit)"
+    if [ -n "$STALE" ]; then
+        echo "ОШИБКА: $BIN старее исходников ($STALE) — сборка его не обновила."
+        exit 1
+    fi
 fi
 echo "    Архитектуры: $(lipo -archs "$BIN")"
 
