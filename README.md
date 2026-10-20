@@ -44,8 +44,10 @@ written in Russian.
 - **Readable file names** — `Title [28.09.2026, 1080p].mp4`: the upload date tells
   same-titled streams apart, and different qualities of one video never overwrite
   each other.
-- **Progress** with speed, time left and phases (video → audio → merging). Cancelling
-  cleans up temporary files; partial downloads never land in your Downloads folder.
+- **Progress** as one bar for the whole download — video and audio fill it in
+  proportion to their size, no reset between tracks — with speed, time left and a
+  merging step at the end. Cancelling cleans up temporary files; partial downloads
+  never land in your Downloads folder.
 - **History** of recent downloads with “Show in Finder”; it survives restarts and
   tolerates a damaged record instead of losing everything.
 - **An engine that stays fresh** — once a day Savo checks GitHub for a new yt-dlp,
@@ -53,7 +55,8 @@ written in Russian.
   download. “Update engine” in Settings does the same on demand.
 - **Clear errors** — when YouTube refuses (403, “not a bot”, missing format) Savo
   retries with another player client first; rate limits and private videos get
-  their own messages.
+  their own messages. A dropped connection or a blocked YouTube (connection reset,
+  broken TLS handshake) is recognized too, with a hint to turn on a system-wide VPN.
 - **Diagnostics** — “Copy debug report” in Settings (versions, Mac model, engine
   start-up time, recent downloads, log tail) and the engine log at
   `~/Library/Logs/Savo/engine.log`.

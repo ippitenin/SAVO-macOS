@@ -123,11 +123,22 @@ enum SavoError: Error {
         if has("Unsupported URL") || has("is not a valid URL") {
             return .unsupportedURL
         }
-        if has("Unable to download webpage") || has("Failed to resolve")
-            || has("nodename nor servname") || has("Network is unreachable")
-            || has("Temporary failure in name resolution") || has("timed out") {
+        if networkMarkers.contains(where: has) {
             return .network
         }
         return nil
     }
+
+    /// Признаки, что до YouTube не достучаться: нет сети, отвалился VPN
+    /// или провайдер рвёт соединение (сброс, обрыв TLS-рукопожатия).
+    /// Проверяются последними — 403/429/бот-чек точнее. Только точные
+    /// фразы: голое «ssl» ловило бы и не сетевые ошибки.
+    static let networkMarkers = [
+        "Unable to download webpage", "Failed to resolve",
+        "nodename nor servname", "Network is unreachable",
+        "Temporary failure in name resolution", "timed out",
+        "Connection reset by peer", "Connection refused", "Connection aborted",
+        "Remote end closed connection", "No route to host",
+        "EOF occurred in violation of protocol", "UNEXPECTED_EOF_WHILE_READING"
+    ]
 }
