@@ -278,14 +278,22 @@ enum PresetBuilder {
     }
 
     /// Оценка размера видео: формат-кандидат (видеодорожка ≤ height,
-    /// предпочтение avc1, максимальный tbr) + лучший m4a при withAudio.
+    /// предпочтение avc1, затем формат с известным размером, затем
+    /// максимальный tbr) + лучший m4a при withAudio.
+    ///
+    /// Известный размер важнее tbr: у YouTube рядом с DASH-форматом
+    /// (137, размер есть) лежит HLS-двойник (270, размера нет, tbr
+    /// вчетверо выше). yt-dlp качает DASH, а «максимальный tbr» брал HLS:
+    /// эфир в 105 МБ подписывался «≈ 448 МБ», и врали веса полосы.
     private static func estimateVideo(height: Int, info: VideoInfo, withAudio: Bool) -> Double? {
         let formats = info.formats ?? []
         let candidates = formats.filter { $0.hasVideo && ($0.height ?? 0) <= height && $0.height != nil }
         guard let bestHeight = candidates.compactMap(\.height).max() else { return nil }
         let atHeight = candidates.filter { $0.height == bestHeight }
         let preferred = atHeight.filter { ($0.vcodec ?? "").hasPrefix("avc1") }
-        let pick = (preferred.isEmpty ? atHeight : preferred)
+        let pool = preferred.isEmpty ? atHeight : preferred
+        let sized = pool.filter { $0.filesize != nil || $0.filesizeApprox != nil }
+        let pick = (sized.isEmpty ? pool : sized)
             .max { ($0.tbr ?? 0) < ($1.tbr ?? 0) }
         guard let pick else { return nil }
         var total = size(of: pick, duration: info.duration)
