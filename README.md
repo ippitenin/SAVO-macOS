@@ -80,9 +80,13 @@ scripts/fetch-binaries.sh   # yt-dlp (onedir), ffmpeg, deno → Vendor/bin (not 
 - `fetch-binaries.sh` checks the yt-dlp archive against the release `SHA2-256SUMS`
   and makes sure every binary has an arm64 slice. Pin a yt-dlp version with
   `YTDLP_TAG=2026.08.19 scripts/fetch-binaries.sh`.
-- Signing uses a local “Savo Dev” certificate if you have one
-  (`scripts/make-dev-cert.md`), otherwise ad-hoc. On another Mac the first launch
-  needs right-click → Open (or System Settings → Privacy & Security → Open Anyway).
+- Signing picks the best identity available: a “Developer ID Application”
+  certificate from the keychain (hardened runtime; `--zip` also notarizes the app
+  with Apple and staples the ticket, so another Mac opens it with no warnings —
+  `notarytool` profile `apps-notary`, override with `SAVO_NOTARY_PROFILE`), else a
+  local “Savo Dev” certificate (`scripts/make-dev-cert.md`), else ad-hoc. Without
+  Developer ID the first launch on another Mac needs right-click → Open (or System
+  Settings → Privacy & Security → Open Anyway).
 - `build.sh` assembles the bundle in `/tmp` (iCloud Desktop folders attach extended
   attributes that break `codesign`) and rewrites the SDK version in the binary's
   `LC_BUILD_VERSION`: SwiftPM records the deployment target there, and macOS would
