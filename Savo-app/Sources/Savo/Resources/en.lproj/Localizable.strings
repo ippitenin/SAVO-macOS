@@ -87,7 +87,6 @@
 "settings.folder" = "Downloads folder";
 "settings.folder.help" = "Downloaded videos and audio are saved here. Defaults to your Downloads folder.";
 "settings.folder.choose" = "Choose…";
-"settings.folder.current" = "Current folder";
 "settings.clipboard" = "Clipboard";
 "settings.autopaste" = "Pick up link from clipboard";
 "settings.autopaste.help" = "If a YouTube link is in the clipboard when you switch to Savo, it is filled in automatically.";

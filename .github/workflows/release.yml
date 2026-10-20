@@ -1,0 +1,73 @@
+name: Release
+
+# Проверяет, что релизная сборка (arm64 + DMG) проходит с чистого раннера.
+# Запускается по тегу v* или вручную.
+#
+# Сам релиз здесь НЕ создаётся: его публикует Savo-app/scripts/release.sh с
+# Mac сопровождающего — только там есть сертификат Developer ID и профиль
+# нотаризации. На раннере build.sh уходит в свою ad-hoc-ветку, и такой DMG
+# чужой Mac без «Открыть всё равно» не откроет, поэтому он остаётся лишь
+# артефактом проверки.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dmg:
+    name: Сборка DMG
+    runs-on: macos-26
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+        working-directory: Savo-app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Движок (yt-dlp, ffmpeg, deno)
+        # В git его нет: скачивается и сверяется по SHA-256, как локально.
+        run: scripts/fetch-binaries.sh
+
+      - name: Сборка приложения и образа
+        # SAVO_INSTALL_DIR уводит установку из ~/Applications во временный каталог.
+        # Сам DMG build.sh кладёт в КОРЕНЬ репозитория, а не в Savo-app.
+        run: SAVO_INSTALL_DIR="$RUNNER_TEMP/out" ./build.sh --dmg
+
+      - name: Проверка бандла
+        # То, что ломается молча и всплывает только у пользователя:
+        # срез не arm64, старая пометка SDK (старый вид контролов на macOS 26+)
+        # и «мусор» в подписи бандла.
+        run: |
+          APP="$RUNNER_TEMP/out/Savo.app"
+          for bin in "$APP/Contents/MacOS/Savo" "$APP/Contents/Resources/bin/ffmpeg" "$APP/Contents/Resources/bin/deno"; do
+            archs="$(lipo -archs "$bin")"
+            echo "$(basename "$bin"): $archs"
+            [[ "$archs" == "arm64" ]] || { echo "::error::$(basename "$bin") не arm64: $archs"; exit 1; }
+          done
+          # `grep >/dev/null`, а не `grep -q`: с -q otool получает SIGPIPE,
+          # и pipefail объявляет успешный поиск неудачей.
+          sdk="$(xcrun --sdk macosx --show-sdk-version)"
+          otool -l "$APP/Contents/MacOS/Savo" | grep -E "^ +sdk $sdk$" >/dev/null \
+            || { echo "::error::в бинарнике не sdk $sdk — старый вид контролов"; exit 1; }
+          test -s "$APP/Contents/Resources/bin/yt-dlp_macos.zip" \
+            || { echo "::error::движок yt-dlp не попал в бандл"; exit 1; }
+          codesign --verify --deep --strict --verbose=2 "$APP"
+
+      - name: Проверка образа
+        working-directory: ${{ github.workspace }}
+        run: |
+          ls -lh Savo.dmg
+          hdiutil verify Savo.dmg
+
+      - name: Артефакт сборки
+        uses: actions/upload-artifact@v4
+        with:
+          name: Savo-dmg
+          path: Savo.dmg
+          if-no-files-found: error

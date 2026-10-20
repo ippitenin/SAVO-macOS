@@ -87,7 +87,6 @@
 "settings.folder" = "Папка загрузок";
 "settings.folder.help" = "Сюда сохраняются скачанные видео и аудио. По умолчанию — папка «Загрузки».";
 "settings.folder.choose" = "Выбрать…";
-"settings.folder.current" = "Текущая папка";
 "settings.clipboard" = "Буфер обмена";
 "settings.autopaste" = "Подхватывать ссылку из буфера";
 "settings.autopaste.help" = "Если при переключении на Savo в буфере обмена лежит ссылка на YouTube, она подставится в поле автоматически.";

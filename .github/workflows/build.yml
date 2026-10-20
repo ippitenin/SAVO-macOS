@@ -1,0 +1,51 @@
+name: Build
+
+# CI автоматизирует то, что не требует живого Mac (см. CLAUDE.md →
+# «Верификация»): сборку без предупреждений, синтаксис Info.plist и проверку
+# локализации. Подписанную сборку с нотаризацией, харнессы чистой логики и
+# ручной smoke с живым YouTube по-прежнему делает человек.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Сборка и проверки
+    runs-on: macos-26   # нужен Xcode 26: Liquid Glass (glassEffect, ConcentricRectangle) требует SDK macOS 26
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash           # ради pipefail: без него `swift build | tee` вернёт код tee
+        working-directory: Savo-app   # пакет лежит в подкаталоге, не в корне репозитория
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Версия тулчейна
+        run: |
+          swift --version
+          xcrun --sdk macosx --show-sdk-version
+
+      - name: Сборка без предупреждений
+        # Предупреждения — тоже провал (гейт 1): ловим их в логе сборки.
+        run: |
+          swift build 2>&1 | tee build.log
+          if grep -E "warning:" build.log; then
+            echo "::error::Сборка с предупреждениями"
+            exit 1
+          fi
+
+      - name: Info.plist
+        run: plutil -lint Resources/Info.plist
+
+      - name: Локализация
+        run: scripts/check-localization.sh
