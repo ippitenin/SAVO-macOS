@@ -136,10 +136,7 @@ final class DownloadController: ObservableObject {
         }
         let destination = SettingsStore.shared.downloadsFolder
         currentTask?.cancel()
-        transition(to: .downloading(DownloadProgress(
-            fraction: nil, speed: nil, eta: nil,
-            phase: 1, phaseCount: preset.expectedPhases, merging: false
-        )))
+        transition(to: .downloading(DownloadProgress()))
         let gen = generation
         currentTask = Task { [weak self] in
             do {
